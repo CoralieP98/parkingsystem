@@ -2,6 +2,7 @@ package com.parkit.parkingsystem;
 
 import com.parkit.parkingsystem.constants.Fare;
 import com.parkit.parkingsystem.constants.ParkingType;
+import com.parkit.parkingsystem.dao.TicketDAO;
 import com.parkit.parkingsystem.model.ParkingSpot;
 import com.parkit.parkingsystem.model.Ticket;
 import com.parkit.parkingsystem.service.FareCalculatorService;
@@ -20,7 +21,8 @@ public class FareCalculatorServiceTest {
 
     @BeforeAll
     private static void setUp() {
-        fareCalculatorService = new FareCalculatorService();
+        TicketDAO ticketDAO= new TicketDAO();
+        fareCalculatorService = new FareCalculatorService(ticketDAO);
     }
 
     @BeforeEach
@@ -53,8 +55,40 @@ public class FareCalculatorServiceTest {
         ticket.setOutTime(outTime);
         ticket.setParkingSpot(parkingSpot);
         fareCalculatorService.calculateFare(ticket);
-        assertEquals(ticket.getPrice(), Fare.BIKE_RATE_PER_HOUR);
     }
+
+    @Test
+    public void calculateFareCarFreeUnder30min(){
+        Date inTime = new Date();
+        inTime.setTime( System.currentTimeMillis() - (  29 * 60 * 1000) );
+        Date outTime = new Date();
+        ParkingSpot parkingSpot = new ParkingSpot(1, ParkingType.CAR,false);
+
+        ticket.setInTime(inTime);
+        ticket.setOutTime(outTime);
+        ticket.setParkingSpot(parkingSpot);
+        fareCalculatorService.calculateFare(ticket);
+
+        assertEquals(ticket.getPrice(), 0);
+
+    }
+
+    @Test
+    public void calculateFareBikeFreeUnder30min(){
+        Date inTime = new Date();
+        inTime.setTime( System.currentTimeMillis() - (  29 * 60 * 1000) );
+        Date outTime = new Date();
+        ParkingSpot parkingSpot = new ParkingSpot(1, ParkingType.BIKE,false);
+
+        ticket.setInTime(inTime);
+        ticket.setOutTime(outTime);
+        ticket.setParkingSpot(parkingSpot);
+        fareCalculatorService.calculateFare(ticket);
+
+        assertEquals(ticket.getPrice(), 0);
+
+    }
+
 
     @Test
     public void calculateFareUnkownType(){

@@ -69,6 +69,57 @@ public class TicketDAO {
         }
     }
 
+    public boolean compareTicket(Ticket ticket) {
+        Connection con = null;
+        String ticketToCompare = "";
+        try {
+            con = dataBaseConfig.getConnection();
+            PreparedStatement ps = con.prepareStatement(DBConstants.IS_REGULAR);
+            ps.setString(1, ticket.getVehicleRegNumber());
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                ticketToCompare = (rs.getString(3));
+            }
+            dataBaseConfig.closeResultSet(rs);
+            dataBaseConfig.closePreparedStatement(ps);
+
+            if (ticketToCompare.equals(ticket.getVehicleRegNumber())) {
+                return true;
+            }
+        } catch (Exception ex) {
+            logger.error("Error comparing ticket", ex);
+        } finally {
+            dataBaseConfig.closeConnection(con);
+        }
+        return false;
+    }
+
+
+
+    /*public boolean regularTicket(String vehicleRegNumber) { //mine
+        Connection con = null;
+        //Ticket ticket = null;
+        try {
+            con = dataBaseConfig.getConnection();
+            PreparedStatement ps = con.prepareStatement(DBConstants.IS_REGULAR);
+            ps.setString(1,vehicleRegNumber);
+            ResultSet rs = ps.executeQuery();
+            if(rs.next()){
+                rs.getString(3);
+                if(vehicleRegNumber.equals(rs.getString(3))){
+                    return true;
+                }else return false;
+            }
+            dataBaseConfig.closeResultSet(rs);
+            dataBaseConfig.closePreparedStatement(ps);
+        }catch (Exception ex){
+            logger.error("Error not finding any data",ex);
+        }finally {
+            dataBaseConfig.closeConnection(con);
+            return true;
+        }
+    }*/
+
     public boolean updateTicket(Ticket ticket) {
         Connection con = null;
         try {
