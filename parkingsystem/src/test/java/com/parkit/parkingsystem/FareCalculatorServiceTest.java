@@ -9,6 +9,8 @@ import com.parkit.parkingsystem.service.FareCalculatorService;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
+
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -19,9 +21,14 @@ public class FareCalculatorServiceTest {
     private static FareCalculatorService fareCalculatorService;
     private Ticket ticket;
 
+    private static TicketDAO ticketDAO= Mockito.mock(TicketDAO.class);
+
+    //private static FareCalculatorService fareCalculatorService;
+    //private Ticket ticket;
+
     @BeforeAll
     private static void setUp() {
-        TicketDAO ticketDAO= new TicketDAO();
+
         fareCalculatorService = new FareCalculatorService(ticketDAO);
     }
 
@@ -40,6 +47,8 @@ public class FareCalculatorServiceTest {
         ticket.setInTime(inTime);
         ticket.setOutTime(outTime);
         ticket.setParkingSpot(parkingSpot);
+        Mockito.when(ticketDAO.compareTicket(Mockito.any())).thenReturn(false);
+
         fareCalculatorService.calculateFare(ticket);
         assertEquals(ticket.getPrice(), Fare.CAR_RATE_PER_HOUR);
     }
@@ -126,6 +135,8 @@ public class FareCalculatorServiceTest {
         ticket.setInTime(inTime);
         ticket.setOutTime(outTime);
         ticket.setParkingSpot(parkingSpot);
+        Mockito.when(ticketDAO.compareTicket(Mockito.any())).thenReturn(false);
+
         fareCalculatorService.calculateFare(ticket);
         assertEquals((0.75 * Fare.BIKE_RATE_PER_HOUR), ticket.getPrice() );
     }
@@ -154,8 +165,51 @@ public class FareCalculatorServiceTest {
         ticket.setInTime(inTime);
         ticket.setOutTime(outTime);
         ticket.setParkingSpot(parkingSpot);
+        Mockito.when(ticketDAO.compareTicket(Mockito.any())).thenReturn(false);
+
         fareCalculatorService.calculateFare(ticket);
         assertEquals( (24 * Fare.CAR_RATE_PER_HOUR) , ticket.getPrice());
     }
+
+    @Test
+    public void FareDiscount5PercentForRecurringUsers() {
+
+        Date inTime = new Date();
+        inTime.setTime(System.currentTimeMillis() - (60 * 60 * 1000));// one hour parking time should give
+        // 1.425 parking fare with the recurring user
+        // discount
+        Date outTime = new Date();
+        ParkingSpot parkingSpot = new ParkingSpot(1, ParkingType.CAR, false);
+        ticket.setInTime(inTime);
+        ticket.setOutTime(outTime);
+        ticket.setParkingSpot(parkingSpot);
+        ticket.setVehicleRegNumber("ABCDEF");
+
+        Mockito.when(ticketDAO.compareTicket(Mockito.any())).thenReturn(true);
+
+        //ticketDAO.saveTicket(ticket);
+
+        fareCalculatorService.calculateFare(ticket);
+
+
+        assertEquals(1.425, ticket.getPrice());
+    }
+
+//    @Test
+//    public void ComparingTicket(){
+//        Date inTime = new Date();
+//        inTime.setTime(System.currentTimeMillis() - (60 * 60 * 1000));
+//        Date outTime = new Date();
+//
+//        ParkingSpot parkingSpot = new ParkingSpot(1, ParkingType.CAR, false);
+//        ticket.setInTime(inTime);
+//        ticket.setOutTime(outTime);
+//        ticket.setParkingSpot(parkingSpot);
+//        ticket.setVehicleRegNumber("ABCDEF");
+//
+//        Mockito.when(ticketDAO.compareTicket(Mockito.any())).thenReturn(true);
+//
+//    }
+
 
 }
